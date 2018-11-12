@@ -4,6 +4,8 @@ import numpy as np
 from matplotlib import pyplot as pt
 from PIL import Image
 import matplotlib.pyplot as plt
+import math
+import random
 
 def create_data():
     n = 1000
@@ -14,7 +16,7 @@ def create_data():
     data = []
     for i in range(len(number)):
         data.append(np.random.normal(mu[i], sigma[i], number[i]).tolist())
-        count, bins3, ignored = plt.hist(data[i], 30, density=True)
+        # count, bins3, ignored = plt.hist(data[i], 30, density=True)
     # count1, bins1, ignored1 = plt.hist(data, 30, density=True)
     # plt.plot(bins1, 1 / (sigma * np.sqrt(2 * np.pi)) * np.exp(- (bins1 - mu1) ** 2 / (2 * sigma1 ** 2)), linewidth=2,
     #        color='r')
@@ -80,31 +82,45 @@ def EM(iter,Epsilon,N,K,data):
         if abs(q2 - q1)< Epsilon:
             break
         q1 = q2
-    return mu,sigma
+    return alpha,mu,sigma
 
 def draw_picture(mu, sigma,data):
     bins = 100
     x = [0,0,0]
     color = ["green","black","blue"]
     for k in range(len(mu)):
-        # x[k] = mu[k] + sigma[k] * np.random.randn(200)  # 样本数量
-        # plt.hist(x[k], bins=1000, color=color[k], normed=False)  # bins显示有几个直方,normed是否对数据进行标准
-        y = np.exp(-((data[k] - mu[k]) ** 2) / (2 * sigma[k] ** 2)) / (sigma[k] * np.sqrt(2 * np.pi))
-        plt.plot(data[k], y)
+        y = (np.exp(-(data-mu[k])**2/(2*sigma[k])))/(np.sqrt(2*np.pi*sigma[k]))
+        plt.scatter(data, y, c='red', marker='x')
     plt.title("EM_GMM")
     plt.show()
 
+def loan_data(txt_name):
+    '''
+    读入数据
+    :param txt_name:
+    :return:数据矩阵
+    '''
+    data = open(txt_name).readlines()
+    length = len(data)
+    list_tolist = []
+    for line in data:
+        line = line.strip().split(' ')
+        for i in range(2):
+            line[i] = float(line[i])
+        list_tolist.append(line)
+    return np.mat(list_tolist)
 
 if __name__ == '__main__':
     N = 1000 # 样本的个数
     K = 3 # 有个高斯模型
     Epsilon = 0.001
     Iter = 1000
-    data_array = create_data()
-    data = []
-    for i in range(K):
-        data = data_array[i]+data
-    mu_result, sigma_result = EM(Iter, Epsilon, N, K, data)
-    print("result:",mu_result,sigma_result)
+    # data_array = create_data()
+    #data = []
+    #for i in range(K):
+     #   data = data_array[i]+data
+    data = loan_data("data.txt")
+    alpha_result, mu_result, sigma_result = EM(Iter, Epsilon, N, K, data)
+    print("result:",alpha_result,mu_result,sigma_result)
 
     draw_picture(mu_result, sigma_result,data)
